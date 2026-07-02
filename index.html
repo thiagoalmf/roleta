@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roleta da Sorte</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+
+        .roleta-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Indicador/Seta da Roleta */
+        .seta {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #333;
+            z-index: 10;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1); /* Efeito suave de frenagem */
+        }
+
+        button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="roleta-container">
+        <div class="seta"></div>
+        <canvas id="roleta" width="300" height="300"></canvas>
+    </div>
+
+    <button onclick="girarRoleta()">Girar</button>
+
+    <script>
+        const canvas = document.getElementById('roleta');
+        const ctx = canvas.getContext('2d');
+
+        // Configuração das cores da roleta
+        const cores = ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3', '#33FFF3'];
+        const numOpcoes = cores.length;
+        const arco = 2 * Math.PI / numOpcoes;
+        let emMovimento = false;
+
+        // Desenha a roleta na tela
+        function desenharRoleta() {
+            for (let i = 0; i < numOpcoes; i++) {
+                ctx.beginPath();
+                ctx.fillStyle = cores[i];
+                ctx.moveTo(150, 150);
+                ctx.arc(150, 150, 150, i * arco, (i + 1) * arco);
+                ctx.lineTo(150, 150);
+                ctx.fill();
+            }
+        }
+
+        function girarRoleta() {
+            if (emMovimento) return;
+            emMovimento = true;
+
+            // =========================================================================
+            // CONFIGURAÇÃO DO RESULTADO VICIOADO
+            // =========================================================================
+            // Mude o número abaixo para escolher qual cor vai ganhar (Índice começa em 0)
+            // Exemplo: 
+            // 0 = Vermelho (#FF5733)
+            // 1 = Verde (#33FF57)
+            // 2 = Azul (#3357FF)
+            // ... e assim por diante baseado na lista de cores acima.
+            const indiceVencedor = 2; 
+            // =========================================================================
+
+            // Força a roleta a dar pelo menos 5 voltas completas e parar exatamente na cor escolhida
+            const voltasCompletas = 5 * 360;
+            
+            // O canvas gira no sentido horário. Calculamos o ângulo necessário para a cor parar no topo (seta).
+            const anguloPorOpcao = 360 / numOpcoes;
+            const anguloDestino = 270 - (indiceVencedor * anguloPorOpcao) - (anguloPorOpcao / 2);
+            
+            const grausTotais = voltasCompletas + (anguloDestino < 0 ? anguloDestino + 360 : anguloDestino);
+
+            canvas.style.transform = `rotate(${grausTotais}deg)`;
+
+            // Libera o botão novamente após a animação acabar (4 segundos)
+            setTimeout(() => {
+                emMovimento = false;
+            }, 4000);
+        }
+
+        // Inicializa o desenho
+        desenharRoleta();
+    </script>
+</body>
+</html>
