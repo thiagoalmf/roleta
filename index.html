@@ -3,26 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roleta da Sorte</title>
+    <title>Roleta Controlada</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             background-color: #f0f2f5;
             font-family: Arial, sans-serif;
+            padding: 20px;
         }
 
+        /* Container responsivo usando a unidade 'vw' (viewport width) */
         .roleta-container {
             position: relative;
-            width: 300px;
-            height: 300px;
+            width: 70vw;
+            height: 70vw;
+            max-width: 400px;
+            max-height: 400px;
         }
 
-        /* Indicador/Seta da Roleta */
+        /* Indicador / Seta da Roleta */
         .seta {
             position: absolute;
             top: -20px;
@@ -40,25 +48,53 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1); /* Efeito suave de frenagem */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            /* O timing function garante uma desaceleração bem natural */
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1); 
+        }
+
+        .botoes-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
         }
 
         button {
-            margin-top: 30px;
-            padding: 15px 40px;
-            font-size: 18px;
+            padding: 15px 30px;
+            font-size: 16px;
             font-weight: bold;
             color: white;
-            background-color: #007bff;
             border: none;
             border-radius: 25px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-girar {
+            background-color: #28a745;
+        }
+
+        .btn-girar:hover {
+            background-color: #218838;
+        }
+
+        .btn-reiniciar {
+            background-color: #dc3545;
+        }
+
+        .btn-reiniciar:hover {
+            background-color: #c82333;
         }
 
         button:active {
-            transform: scale(0.98);
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
         }
     </style>
 </head>
@@ -66,29 +102,50 @@
 
     <div class="roleta-container">
         <div class="seta"></div>
-        <canvas id="roleta" width="300" height="300"></canvas>
+        <!-- Definimos um tamanho interno fixo para o canvas desenhar sem perder resolução -->
+        <canvas id="roleta" width="500" height="500"></canvas>
     </div>
 
-    <button onclick="girarRoleta()">Girar</button>
+    <div class="botoes-container">
+        <button id="btnGirar" class="btn-girar" onclick="girarRoleta()">Girar</button>
+        <button class="btn-reiniciar" onclick="reiniciarProcesso()">Reiniciar</button>
+    </div>
 
     <script>
         const canvas = document.getElementById('roleta');
         const ctx = canvas.getContext('2d');
+        const btnGirar = document.getElementById('btnGirar');
 
-        // Configuração das cores da roleta
-        const cores = ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3', '#33FFF3'];
+        // 1) Lista de cores atualizada incluindo Marrom, Roxa e Cinza
+        // IMPORTANTE: Mantenha as posições fixas para não alterar a lógica do resultado!
+        const cores = [
+            '#FF5733', // 0: Vermelho
+            '#33FF57', // 1: Verde
+            '#002244', // 2: Azul Escuro (Ajustado para ficar bem distinto do azul claro)
+            '#F3FF33', // 3: Amarelo
+            '#FF33F3', // 4: Rosa
+            '#33FFF3', // 5: Azul Claro
+            '#8B4513', // 6: Marrom
+            '#800080', // 7: Roxa
+            '#808080'  // 8: Cinza
+        ];
+
         const numOpcoes = cores.length;
         const arco = 2 * Math.PI / numOpcoes;
+        
+        let contadorCliques = 0;
         let emMovimento = false;
+        let rotacaoAtual = 0; // Guarda a rotação acumulada para os giros seguintes funcionarem corretamente
 
-        // Desenha a roleta na tela
+        // Desenha a roleta baseada no tamanho interno do canvas (500x500)
         function desenharRoleta() {
+            ctx.clearRect(0, 0, 500, 500);
             for (let i = 0; i < numOpcoes; i++) {
                 ctx.beginPath();
                 ctx.fillStyle = cores[i];
-                ctx.moveTo(150, 150);
-                ctx.arc(150, 150, 150, i * arco, (i + 1) * arco);
-                ctx.lineTo(150, 150);
+                ctx.moveTo(250, 250);
+                ctx.arc(250, 250, 250, i * arco, (i + 1) * arco);
+                ctx.lineTo(250, 250);
                 ctx.fill();
             }
         }
@@ -96,37 +153,60 @@
         function girarRoleta() {
             if (emMovimento) return;
             emMovimento = true;
+            btnGirar.disabled = true;
 
-            // =========================================================================
-            // CONFIGURAÇÃO DO RESULTADO VICIOADO
-            // =========================================================================
-            // Mude o número abaixo para escolher qual cor vai ganhar (Índice começa em 0)
-            // Exemplo: 
-            // 0 = Vermelho (#FF5733)
-            // 1 = Verde (#33FF57)
-            // 2 = Azul (#3357FF)
-            // ... e assim por diante baseado na lista de cores acima.
-            const indiceVencedor = 2; 
-            // =========================================================================
+            contadorCliques++;
+            let indiceVencedor = 0;
 
-            // Força a roleta a dar pelo menos 5 voltas completas e parar exatamente na cor escolhida
-            const voltasCompletas = 5 * 360;
-            
-            // O canvas gira no sentido horário. Calculamos o ângulo necessário para a cor parar no topo (seta).
+            // 2) Lógica da sequência de cliques
+            if (contadorCliques === 1) {
+                indiceVencedor = 3; // Amarelo
+            } else if (contadorCliques === 2) {
+                indiceVencedor = 2; // Azul Escuro
+            } else if (contadorCliques === 3) {
+                indiceVencedor = 7; // Roxa
+            } else {
+                // Se clicarem uma 4ª vez sem reiniciar, escolhe um resultado aleatório
+                indiceVencedor = Math.floor(Math.random() * numOpcoes);
+            }
+
+            // Cálculos para alinhar a fatia exata com a seta no topo (270 graus)
             const anguloPorOpcao = 360 / numOpcoes;
             const anguloDestino = 270 - (indiceVencedor * anguloPorOpcao) - (anguloPorOpcao / 2);
             
-            const grausTotais = voltasCompletas + (anguloDestino < 0 ? anguloDestino + 360 : anguloDestino);
+            // Garante que o ângulo de parada seja positivo
+            const ajusteAngulo = anguloDestino < 0 ? anguloDestino + 360 : anguloDestino;
+            
+            // Dá pelo menos 5 voltas completas a partir da posição atual
+            const voltasCompletas = 5 * 360;
+            
+            // Acumula a rotação para que a roleta continue girando para a frente no próximo clique
+            const sobraAtual = rotacaoAtual % 360;
+            rotacaoAtual += voltasCompletas + (ajusteAngulo - sobraAtual);
+            if (ajusteAngulo < sobraAtual) {
+                rotacaoAtual += 360;
+            }
 
-            canvas.style.transform = `rotate(${grausTotais}deg)`;
+            canvas.style.transform = `rotate(${rotacaoAtual}deg)`;
 
-            // Libera o botão novamente após a animação acabar (4 segundos)
+            // Quando a animação terminar (4 segundos)
             setTimeout(() => {
                 emMovimento = false;
+                btnGirar.disabled = false;
             }, 4000);
         }
 
-        // Inicializa o desenho
+        // 3) Função para reiniciar todo o processo
+        function reiniciarProcesso() {
+            if (emMovimento) return; // Evita bugar se clicar enquanto roda
+            
+            contadorCliques = 0;
+            rotacaoAtual = 0;
+            canvas.style.transform = `rotate(0deg)`;
+            btnGirar.disabled = false;
+        }
+
+        // Inicializa o desenho da roleta
         desenharRoleta();
     </script>
 </body>
