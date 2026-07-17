@@ -19,30 +19,28 @@
             background-color: #f0f2f5;
             font-family: Arial, sans-serif;
             padding: 10px;
-            overflow: hidden; /* Evita barras de rolagem desnecessárias */
+            overflow: hidden;
         }
 
-        /* 1) Ajuste de tamanho: Ocupa quase toda a tela disponível */
         .roleta-container {
             position: relative;
-            /* Usa a menor dimensão da tela (largura ou altura) para garantir que permaneça redonda e grande */
             width: 75vmin; 
             height: 75vmin;
-            max-width: 650px; /* Limite máximo para não estourar em monitores gigantes */
+            max-width: 650px;
             max-height: 650px;
         }
 
-        /* Indicador / Seta da Roleta */
+        /* 2) Ponteiro/Seta aumentado para ter mais destaque */
         .seta {
             position: absolute;
-            top: -15px;
+            top: -25px; /* Ajustado para a nova proporção */
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #333;
+            border-left: 22px solid transparent;  /* Ficou mais larga */
+            border-right: 22px solid transparent; /* Ficou mais larga */
+            border-top: 45px solid #333;          /* Ficou mais comprida */
             z-index: 10;
         }
 
@@ -57,7 +55,7 @@
         .botoes-container {
             display: flex;
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 25px;
             width: 100%;
             justify-content: center;
         }
@@ -105,7 +103,6 @@
 
     <div class="roleta-container">
         <div class="seta"></div>
-        <!-- Mantemos a resolução interna alta para o desenho não pixelar ao expandir -->
         <canvas id="roleta" width="800" height="800"></canvas>
     </div>
 
@@ -119,16 +116,15 @@
         const ctx = canvas.getContext('2d');
         const btnGirar = document.getElementById('btnGirar');
 
-        // Lista de cores com os códigos hexadecimais exatos solicitados
         const cores = [
             '#FF5733', // 0: Vermelho
             '#33FF57', // 1: Verde
-            '#272194', // 2: Azul Escuro (Alterado para #272194)
+            '#272194', // 2: Azul Escuro
             '#F3FF33', // 3: Amarelo
             '#FF33F3', // 4: Rosa
             '#33FFF3', // 5: Azul Claro
             '#8B4513', // 6: Marrom
-            '#5D0C61', // 7: Roxo (Alterado para #5D0C61)
+            '#5D0C61', // 7: Roxo
             '#808080'  // 8: Cinza
         ];
 
@@ -137,9 +133,8 @@
         
         let contadorCliques = 0;
         let emMovimento = false;
-        let 'rotacaoAtual' = 0;
+        let rotacaoAtual = 0; // Corrigido o nome da variável aqui
 
-        // Desenha a roleta baseada na resolução interna expandida (800x800)
         function desenharRoleta() {
             ctx.clearRect(0, 0, 800, 800);
             for (let i = 0; i < numOpcoes; i++) {
@@ -160,13 +155,12 @@
             contadorCliques++;
             let indiceVencedor = 0;
 
-            // Sequência de vitórias mantida
             if (contadorCliques === 1) {
-                indiceVencedor = 3; // Amarelo
+                indiceVencedor = 3; // 1º clique: Amarelo
             } else if (contadorCliques === 2) {
-                indiceVencedor = 2; // Azul Escuro (#272194)
+                indiceVencedor = 2; // 2º clique: Azul Escuro (#272194)
             } else if (contadorCliques === 3) {
-                indiceVencedor = 7; // Roxo (#5D0C61)
+                indiceVencedor = 7; // 3º clique: Roxo (#5D0C61)
             } else {
                 indiceVencedor = Math.floor(Math.random() * numOpcoes);
             }
@@ -177,13 +171,13 @@
             const ajusteAngulo = anguloDestino < 0 ? anguloDestino + 360 : anguloDestino;
             const voltasCompletas = 5 * 360;
             
-            const sobraAtual = 'rotacaoAtual' % 360;
-            'rotacaoAtual' += voltasCompletas + (ajusteAngulo - sobraAtual);
+            const sobraAtual = rotacaoAtual % 360;
+            rotacaoAtual += voltasCompletas + (ajusteAngulo - sobraAtual);
             if (ajusteAngulo < sobraAtual) {
-                'rotacaoAtual' += 360;
+                rotacaoAtual += 360;
             }
 
-            canvas.style.transform = `rotate(${'rotacaoAtual'}deg)`;
+            canvas.style.transform = `rotate(${rotacaoAtual}deg)`;
 
             setTimeout(() => {
                 emMovimento = false;
@@ -195,11 +189,12 @@
             if (emMovimento) return;
             
             contadorCliques = 0;
-            'rotacaoAtual' = 0;
+            rotacaoAtual = 0;
             canvas.style.transform = `rotate(0deg)`;
             btnGirar.disabled = false;
         }
 
+        // Executa o desenho logo após carregar a página
         desenharRoleta();
     </script>
 </body>
