@@ -163,7 +163,7 @@
             }
 
             const anguloPorOpcao = 360 / numOpcoes;
-            const anguloDestino = 270 - (indiceVencedor * angpx = anguloPorOpcao) - (anguloPorOpcao / 2);
+            const anguloDestino = 270 - (indiceVencedor * anguloPorOpcao) - (anguloPorOpcao / 2);
             
             const ajusteAngulo = anguloDestino < 0 ? anguloDestino + 360 : anguloDestino;
             const voltasCompletas = 5 * 360;
@@ -179,7 +179,7 @@
             setTimeout(() => {
                 emMovimento = false;
                 
-                // Trava o botão desabilitado se já tiver atingido 3 giros
+                // Trava o botão desabilitado em definitivo após o 3º giro
                 if (contadorCliques >= 3) {
                     btnGirar.disabled = true;
                 } else {
@@ -194,9 +194,10 @@
             contadorCliques = 0;
             rotacaoAtual = 0;
             canvas.style.transform = `rotate(0deg)`;
-            btnGirar.disabled = false; // Reativa o botão ao reiniciar
+            btnGirar.disabled = false; 
         }
 
+        // Desenha a roleta na inicialização
         desenharRoleta();
     </script>
 </body>
