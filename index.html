@@ -30,17 +30,16 @@
             max-height: 650px;
         }
 
-        /* 2) Ponteiro/Seta aumentado para ter mais destaque */
         .seta {
             position: absolute;
-            top: -25px; /* Ajustado para a nova proporção */
+            top: -25px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 22px solid transparent;  /* Ficou mais larga */
-            border-right: 22px solid transparent; /* Ficou mais larga */
-            border-top: 45px solid #333;          /* Ficou mais comprida */
+            border-left: 22px solid transparent;
+            border-right: 22px solid transparent;
+            border-top: 45px solid #333;
             z-index: 10;
         }
 
@@ -133,7 +132,7 @@
         
         let contadorCliques = 0;
         let emMovimento = false;
-        let rotacaoAtual = 0; // Corrigido o nome da variável aqui
+        let rotacaoAtual = 0;
 
         function desenharRoleta() {
             ctx.clearRect(0, 0, 800, 800);
@@ -148,7 +147,7 @@
         }
 
         function girarRoleta() {
-            if (emMovimento) return;
+            if (emMovimento || contadorCliques >= 3) return;
             emMovimento = true;
             btnGirar.disabled = true;
 
@@ -161,12 +160,10 @@
                 indiceVencedor = 2; // 2º clique: Azul Escuro (#272194)
             } else if (contadorCliques === 3) {
                 indiceVencedor = 7; // 3º clique: Roxo (#5D0C61)
-            } else {
-                indiceVencedor = Math.floor(Math.random() * numOpcoes);
             }
 
             const anguloPorOpcao = 360 / numOpcoes;
-            const anguloDestino = 270 - (indiceVencedor * anguloPorOpcao) - (anguloPorOpcao / 2);
+            const anguloDestino = 270 - (indiceVencedor * angpx = anguloPorOpcao) - (anguloPorOpcao / 2);
             
             const ajusteAngulo = anguloDestino < 0 ? anguloDestino + 360 : anguloDestino;
             const voltasCompletas = 5 * 360;
@@ -181,7 +178,13 @@
 
             setTimeout(() => {
                 emMovimento = false;
-                btnGirar.disabled = false;
+                
+                // Trava o botão desabilitado se já tiver atingido 3 giros
+                if (contadorCliques >= 3) {
+                    btnGirar.disabled = true;
+                } else {
+                    btnGirar.disabled = false;
+                }
             }, 4000);
         }
 
@@ -191,10 +194,9 @@
             contadorCliques = 0;
             rotacaoAtual = 0;
             canvas.style.transform = `rotate(0deg)`;
-            btnGirar.disabled = false;
+            btnGirar.disabled = false; // Reativa o botão ao reiniciar
         }
 
-        // Executa o desenho logo após carregar a página
         desenharRoleta();
     </script>
 </body>
